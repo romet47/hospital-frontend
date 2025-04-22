@@ -73,6 +73,7 @@
 </template>
 
 <script setup>
+
 import ForgetPassword from '@/components/ForgetPassword.vue'
 import hospitalLogo from '@/assets/hospital-logo.png'
 import hospitalBg from '@/assets/hospital-bg.jpg'
@@ -100,7 +101,20 @@ const form = reactive({
   username: '',
   password: ''
 })
-
+onMounted(() => {
+  const savedUser = localStorage.getItem('savedUser')
+  if (savedUser) {
+    try {
+      const { username, password } = JSON.parse(savedUser)
+      form.username = username
+      form.password = password
+      rememberMe.value = true
+    } catch (e) {
+      console.error('解析保存的用户信息失败:', e)
+      localStorage.removeItem('savedUser')
+    }
+  }
+})
 // 表单验证规则
 const rules = reactive({
   username: [
@@ -125,18 +139,30 @@ onMounted(() => { // 现在onMounted已定义
 // 登录逻辑
 const handleLogin = async () => {
   try {
-    await loginForm.value.validate();
-    loading.value = true;
+    await loginForm.value.validate()
+    loading.value = true
 
-    const response = await login(form.username, form.password);
+    const response = await login(form.username, form.password)
+
     if (response.token) {
-      localStorage.setItem('token', response.token);
-      router.push('/');
+      // 如果勾选了"记住我"，保存用户名和密码
+      if (rememberMe.value) {
+        localStorage.setItem('savedUser', JSON.stringify({
+          username: form.username,
+          password: form.password
+        }))
+      } else {
+        // 如果没有勾选，清除之前保存的信息
+        localStorage.removeItem('savedUser')
+      }
+
+      localStorage.setItem('token', response.token)
+      router.push('/')
     }
   } catch (error) {
-    ElMessage.error(error.message);
+    ElMessage.error(error.message || '登录失败')
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 // 其他功能

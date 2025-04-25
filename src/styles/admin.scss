@@ -1,0 +1,17 @@
+// src/styles/admin.scss
+.admin-container {
+  padding: 20px;
+
+  .el-card {
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 10px;
+
+    .el-form--inline .el-form-item {
+      margin-right: 0;
+      width: 100%;
+    }
+  }
+}

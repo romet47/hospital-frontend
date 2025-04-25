@@ -6,9 +6,21 @@ export const login = async (username, password) => {
       username,
       password
     });
-    return response.data;
+
+    // 修改这里，确保正确处理响应结构
+    if (!response?.token) {
+      throw new Error('登录响应中没有token');
+    }
+
+    return {
+      token: response.token,
+      ...response  // 保留其他响应数据
+    };
   } catch (error) {
-    throw new Error(error.response?.data?.message || '登录失败');
+    const errorMsg = error.response?.data?.message ||
+        error.message ||
+        '登录失败';
+    throw new Error(errorMsg);
   }
 };
 

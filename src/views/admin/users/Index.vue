@@ -29,8 +29,12 @@ export default {
   },
   methods: {
     async fetchUserList() {
-      const res = await fetchUsers();
-      this.userList = res.data;
+      try {
+        const res = await fetchUsers();
+        this.userList = res.content || []; // 适配后端分页格式
+      } catch (error) {
+        this.$message.error("加载失败: " + error.message);
+      }
     },
     handleAdd() {
       this.$router.push('/admin/users/add');
@@ -39,8 +43,17 @@ export default {
       this.$router.push(`/admin/users/edit/${user.id}`);
     },
     async handleDelete(user) {
-      await deleteUser(user.id);
-      this.fetchUserList();
+      try {
+        await deleteUser(user.id);
+        this.$message.success("删除成功");
+        this.fetchUserList();
+      } catch (error) {
+        if (error.response?.status === 409) {
+          this.$message.error("请先解除该用户的医生关联");
+        } else {
+          this.$message.error("删除失败");
+        }
+      }
     }
   }
 };

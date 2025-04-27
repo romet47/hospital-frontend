@@ -35,14 +35,24 @@ export default {
     };
   },
   async created() {
-    const userId = this.$route.params.id;
-    const res = await fetchUserById(userId);
-    this.userForm = res.data;
+    try {
+      const userId = this.$route.params.id;
+      const res = await fetchUserById(userId);
+      this.userForm = res; // 直接赋值 res 而非 res.data
+    } catch (error) {
+      console.error("加载用户失败:", error);
+      this.$message.error("加载用户信息失败");
+    }
   },
   methods: {
     async handleSubmit() {
-      await updateUser(this.userForm);
-      this.$router.push('/admin/users');
+      try {
+        await updateUser(this.userForm);
+        this.$message.success("更新成功");
+        this.$router.push('/admin/users');
+      } catch (error) {
+        this.$message.error("更新失败: " + (error.response?.data || "网络错误"));
+      }
     }
   }
 };

@@ -3,6 +3,7 @@ import Home from '@/views/Home.vue'
 import Login from '@/views/auth/Login.vue'
 import { parseJwt } from '@/utils/jwt'
 import {ElMessage} from "element-plus";
+
 const routes = [
   // 管理员路由示例
   {
@@ -15,7 +16,11 @@ const routes = [
       { path: 'users/edit/:id', component: () => import('@/views/admin/users/EditUser.vue') },
       { path: 'departments', component: () => import('@/views/admin/departments/Index.vue') },
       { path: 'departments/add', component: () => import('@/views/admin/departments/AddDepartment.vue') },
-      { path: 'departments/edit/:id', component: () => import('@/views/admin/departments/EditDepartment.vue') },
+      {
+        path: 'departments/edit/:id',
+        component: () => import('@/views/admin/departments/EditDepartment.vue'),
+        name: 'EditDepartment' // 添加路由名称
+      },
       { path: 'doctors', component: () => import('@/views/admin/doctors/Index.vue') },
       { path: 'doctors/add', component: () => import('@/views/admin/doctors/AddDoctor.vue') },
       { path: 'doctors/edit/:id', component: () => import('@/views/admin/doctors/EditDoctor.vue') },
@@ -30,12 +35,14 @@ const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: Login
+    component: Login,
+    meta: { requiresAuth: false }
   },
   {
     path: '/forgot-password',
     name: 'ForgotPassword',
-    component: () => import('@/views/auth/ForgotPassword.vue')
+    component: () => import('@/views/auth/ForgotPassword.vue'),
+    meta: { requiresAuth: false }
   },
   { path: '/test-api', component: () => import('@/views/TestApi.vue') },
   {
@@ -46,17 +53,20 @@ const routes = [
   {
     path: '/agreement',
     name: 'Agreement',
-    component: () => import('@/views/Agreement.vue')
+    component: () => import('@/views/Agreement.vue'),
+    meta: { requiresAuth: false }
   },
   {
     path: '/privacy',
     name: 'Privacy',
-    component: () => import('@/views/Privacy.vue')
+    component: () => import('@/views/Privacy.vue'),
+    meta: { requiresAuth: false }
   },
   {
     path: '/register',
     name: 'Register',
-    component: () => import('@/views/auth/Register.vue')
+    component: () => import('@/views/auth/Register.vue'),
+    meta: { requiresAuth: false }
   },
 ]
 
@@ -86,6 +96,10 @@ router.beforeEach(async (to, from, next) => {
     const payload = JSON.parse(atob(token.split('.')[1]));
     const userRole = payload?.role?.toUpperCase();
 
+    // 调试信息
+    console.log('Token:', token);
+    console.log('Payload:', payload);
+
     // 检查角色权限
     if (to.meta.requiredRole && userRole !== to.meta.requiredRole) {
       ElMessage.warning('需要管理员权限');
@@ -99,3 +113,5 @@ router.beforeEach(async (to, from, next) => {
     next('/login');
   }
 });
+
+

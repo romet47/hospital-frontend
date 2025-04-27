@@ -1,8 +1,18 @@
 <template>
   <div>
-    <el-table :data="departmentList" style="width: 100%">
+    <el-table
+        :data="departmentList"
+        style="width: 100%"
+        v-loading="loading"
+        element-loading-text="数据加载中..."
+    >
       <el-table-column prop="name" label="科室名称"></el-table-column>
       <el-table-column prop="description" label="科室描述"></el-table-column>
+      <el-table-column label="状态">
+        <template #default="scope">
+          {{ formatStatus(scope.row.status) }}
+        </template>
+      </el-table-column>
       <el-table-column label="操作">
         <template #default="scope">
           <el-button type="text" @click="handleEdit(scope.row)">编辑</el-button>
@@ -20,16 +30,34 @@ import { fetchDepartments, deleteDepartment } from '@/api/admin';
 export default {
   data() {
     return {
-      departmentList: []
+      departmentList: [],
+      loading: false
     };
   },
   created() {
     this.fetchDepartmentList();
   },
   methods: {
+    formatStatus(status) {
+      const statusMap = {
+        1: '正常',
+        2: '停用'
+        // 添加其他状态码对应的文本
+      };
+      return statusMap[status] || '未知状态';
+    },
     async fetchDepartmentList() {
-      const res = await fetchDepartments();
-      this.departmentList = res.data;
+      this.loading = true;
+      try {
+        const res = await fetchDepartments();
+        // 直接使用响应数据（已经是数组）
+        this.departmentList = Array.isArray(res) ? res : [];
+      } catch (error) {
+        console.error('获取科室失败:', error);
+        this.$message.error('获取科室列表失败');
+      } finally {
+        this.loading = false;
+      }
     },
     handleAdd() {
       this.$router.push('/admin/departments/add');
@@ -38,8 +66,20 @@ export default {
       this.$router.push(`/admin/departments/edit/${department.id}`);
     },
     async handleDelete(department) {
-      await deleteDepartment(department.id);
-      this.fetchDepartmentList();
+      try {
+        await this.$confirm('确认删除该科室吗?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        });
+        await deleteDepartment(department.id);
+        this.$message.success('删除成功');
+        this.fetchDepartmentList();
+      } catch (error) {
+        if (error !== 'cancel') {
+          this.$message.error('删除失败');
+        }
+      }
     }
   }
 };

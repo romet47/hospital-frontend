@@ -1,11 +1,19 @@
-import request from '@/utils/request';
+import request from '@/utils/request'
 
+export const fetchDepartments = () => {
+    return request.get('/api/admin/departments') // 确保是GET方法
+}
 export function fetchUsers() {
     return request({
         url: '/api/admin/users',
         method: 'get'
     });
 }
+// 添加科室
+export const addDepartment = (data) => {
+    return request.post('/api/admin/departments', data);
+};
+
 
 export function fetchUserById(id) {
     return request({
@@ -37,35 +45,15 @@ export function deleteUser(id) {
     });
 }
 
-export function fetchDepartments() {
-    return request({
-        url: '/api/admin/departments',
-        method: 'get'
-    });
-}
+export const fetchDepartmentById = (id) => {
+    return request.get(`/api/admin/departments/${id}`);
+};
 
-export function fetchDepartmentById(id) {
-    return request({
-        url: `/api/admin/departments/${id}`,
-        method: 'get'
-    });
-}
+export const updateDepartment = (id, data) => {
+    return request.put(`/api/admin/departments/${id}`, data);
+};
 
-export function addDepartment(department) {
-    return request({
-        url: '/api/admin/departments',
-        method: 'post',
-        data: department
-    });
-}
 
-export function updateDepartment(department) {
-    return request({
-        url: `/api/admin/departments/${department.id}`,
-        method: 'put',
-        data: department
-    });
-}
 
 export function deleteDepartment(id) {
     return request({

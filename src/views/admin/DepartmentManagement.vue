@@ -4,7 +4,7 @@
       <el-table-column prop="name" label="科室名称"></el-table-column>
       <el-table-column prop="description" label="科室描述"></el-table-column>
       <el-table-column label="操作">
-        <template #default="scope">
+        <template slot-scope="scope">
           <el-button type="text" @click="handleEdit(scope.row)">编辑</el-button>
           <el-button type="text" @click="handleDelete(scope.row)">删除</el-button>
         </template>
@@ -32,10 +32,10 @@ export default {
       this.departmentList = res.data;
     },
     handleAdd() {
-      this.$router.push('/admin/departments/add');
+      this.$router.push('/admin/department/add');
     },
     handleEdit(department) {
-      this.$router.push(`/admin/departments/edit/${department.id}`);
+      this.$router.push(`/admin/department/edit/${department.id}`);
     },
     async handleDelete(department) {
       await deleteDepartment(department.id);

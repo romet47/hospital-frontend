@@ -5,7 +5,7 @@
       <el-table-column prop="email" label="邮箱"></el-table-column>
       <el-table-column prop="role" label="角色"></el-table-column>
       <el-table-column label="操作">
-        <template #default="scope">
+        <template slot-scope="scope">
           <el-button type="text" @click="handleEdit(scope.row)">编辑</el-button>
           <el-button type="text" @click="handleDelete(scope.row)">删除</el-button>
         </template>
@@ -33,10 +33,10 @@ export default {
       this.userList = res.data;
     },
     handleAdd() {
-      this.$router.push('/admin/users/add');
+      this.$router.push('/admin/user/add');
     },
     handleEdit(user) {
-      this.$router.push(`/admin/users/edit/${user.id}`);
+      this.$router.push(`/admin/user/edit/${user.id}`);
     },
     async handleDelete(user) {
       await deleteUser(user.id);

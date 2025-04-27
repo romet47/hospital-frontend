@@ -1,20 +1,31 @@
-<!-- src/views/admin/departments/Index.vue -->
 <template>
-  <div class="department-management">
-    <el-page-header @back="$router.push('/admin')" content="数据管理" />
-    <el-card class="content-card">
-      <!-- 页面具体内容将在这里实现 -->
-      <p>数据管理页面内容</p>
-    </el-card>
+  <div>
+    <el-table :data="statsList" style="width: 100%">
+      <el-table-column prop="department.name" label="科室"></el-table-column>
+      <el-table-column prop="totalAppointments" label="总预约数"></el-table-column>
+      <el-table-column prop="completedAppointments" label="已完成预约数"></el-table-column>
+      <el-table-column prop="cancelledAppointments" label="已取消预约数"></el-table-column>
+    </el-table>
   </div>
 </template>
 
-<script setup>
-// 科室管理逻辑将在这里实现
-</script>
+<script>
+import { fetchDepartmentStats } from '@/api/admin';
 
-<style scoped>
-.content-card {
-  margin-top: 20px;
-}
-</style>
+export default {
+  data() {
+    return {
+      statsList: []
+    };
+  },
+  created() {
+    this.fetchStats();
+  },
+  methods: {
+    async fetchStats() {
+      const res = await fetchDepartmentStats();
+      this.statsList = res.data;
+    }
+  }
+};
+</script>

@@ -2,7 +2,7 @@
   <div class="login-container">
     <!-- 背景图片 -->
     <div class="background-image" :style="{ backgroundImage: `url(${hospitalBg})` }"></div>
-    
+
     <!-- 登录卡片 -->
     <el-card class="login-card">
       <div class="logo">
@@ -10,30 +10,30 @@
         <h2>医院预约挂号系统</h2>
       </div>
 
-      <el-form 
-        @submit.prevent="handleLogin" 
-        :model="form" 
-        :rules="rules"
-        ref="loginForm"
+      <el-form
+          @submit.prevent="handleLogin"
+          :model="form"
+          :rules="rules"
+          ref="loginForm"
       >
         <!-- 用户名输入 -->
         <el-form-item prop="username">
           <el-input
-            v-model="form.username"
-            placeholder="请输入用户名/手机号"
-            prefix-icon="User"
-            clearable
+              v-model="form.username"
+              placeholder="请输入用户名/手机号"
+              prefix-icon="User"
+              clearable
           />
         </el-form-item>
 
         <!-- 密码输入 -->
         <el-form-item prop="password">
           <el-input
-            v-model="form.password"
-            type="password"
-            placeholder="请输入密码"
-            prefix-icon="Lock"
-            show-password
+              v-model="form.password"
+              type="password"
+              placeholder="请输入密码"
+              prefix-icon="Lock"
+              show-password
           />
         </el-form-item>
 
@@ -47,12 +47,12 @@
 
         <!-- 登录按钮 -->
         <el-form-item>
-          <el-button 
-            type="primary" 
-            native-type="submit" 
-            :loading="loading"
-            round
-            class="login-btn"
+          <el-button
+              type="primary"
+              native-type="submit"
+              :loading="loading"
+              round
+              class="login-btn"
           >
             登录
           </el-button>
@@ -79,22 +79,24 @@ import hospitalLogo from '@/assets/hospital-logo.png'
 import hospitalBg from '@/assets/hospital-bg.jpg'
 
 // Vue核心功能
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 
 // Vue路由
 import { useRouter, useRoute } from 'vue-router'
 
 // Element Plus组件
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 
 // API方法
-import { login, register } from '@/api/auth'
+import { login } from '@/api/auth'
 
 // 其他工具
 const router = useRouter()
+const route = useRoute() // 获取当前路由
 const loginForm = ref(null)
 const forgetVisible = ref(false)
 const loading = ref(false)
+const rememberMe = ref(false) // 定义rememberMe变量
 
 // 表单数据
 const form = reactive({
@@ -116,6 +118,7 @@ onMounted(() => {
     }
   }
 });
+
 // 表单验证规则
 const rules = reactive({
   username: [
@@ -125,7 +128,6 @@ const rules = reactive({
     { required: true, message: '请输入密码', trigger: 'blur' }
   ]
 })
-
 
 // 登录逻辑
 const handleLogin = async () => {
@@ -154,7 +156,7 @@ const handleLogin = async () => {
       await router.push(redirectPath);
 
       // 只显示一次成功提示
-      if (!fromRoute?.meta?.hideMessage) {
+      if (!route.meta?.hideMessage) { // 使用route代替fromRoute
         ElMessage.success('登录成功');
       }
     }
@@ -165,6 +167,7 @@ const handleLogin = async () => {
     loading.value = false;
   }
 };
+
 // 其他功能
 const showForgetDialog = () => { forgetVisible.value = true }
 const goToRegister = () => { router.push('/register') }

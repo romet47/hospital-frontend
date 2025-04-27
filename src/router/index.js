@@ -11,11 +11,19 @@ const routes = [
     meta: { requiresAuth: true, requiredRole: 'ADMIN' },
     children: [
       { path: 'users', component: () => import('@/views/admin/users/Index.vue') },
+      { path: 'users/add', component: () => import('@/views/admin/users/AddUser.vue') },
+      { path: 'users/edit/:id', component: () => import('@/views/admin/users/EditUser.vue') },
       { path: 'departments', component: () => import('@/views/admin/departments/Index.vue') },
+      { path: 'departments/add', component: () => import('@/views/admin/departments/AddDepartment.vue') },
+      { path: 'departments/edit/:id', component: () => import('@/views/admin/departments/EditDepartment.vue') },
       { path: 'doctors', component: () => import('@/views/admin/doctors/Index.vue') },
+      { path: 'doctors/add', component: () => import('@/views/admin/doctors/AddDoctor.vue') },
+      { path: 'doctors/edit/:id', component: () => import('@/views/admin/doctors/EditDoctor.vue') },
       { path: 'schedules', component: () => import('@/views/admin/schedules/Index.vue') },
+      { path: 'schedules/add', component: () => import('@/views/admin/schedules/AddSchedule.vue') },
+      { path: 'schedules/edit/:id', component: () => import('@/views/admin/schedules/EditSchedule.vue') },
       { path: 'stats', component: () => import('@/views/admin/stats/Index.vue') },
-      { path: '', redirect: '/admin/users' }
+      { path: '', redirect: '/admin/users' } // 默认重定向到用户管理页面
     ]
   },
   // 登录路由

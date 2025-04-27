@@ -1,20 +1,47 @@
-<!-- src/views/admin/departments/Index.vue -->
 <template>
-  <div class="department-management">
-    <el-page-header @back="$router.push('/admin')" content="医生管理" />
-    <el-card class="content-card">
-      <!-- 页面具体内容将在这里实现 -->
-      <p>医生管理页面内容</p>
-    </el-card>
+  <div>
+    <el-table :data="doctorList" style="width: 100%">
+      <el-table-column prop="name" label="姓名"></el-table-column>
+      <el-table-column prop="title" label="职称"></el-table-column>
+      <el-table-column prop="department.name" label="所属科室"></el-table-column>
+      <el-table-column label="操作">
+        <template #default="scope">
+          <el-button type="text" @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button type="text" @click="handleDelete(scope.row)">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-button type="primary" @click="handleAdd">添加医生</el-button>
   </div>
 </template>
 
-<script setup>
-// 科室管理逻辑将在这里实现
-</script>
+<script>
+import { fetchDoctors, deleteDoctor } from '@/api/admin';
 
-<style scoped>
-.content-card {
-  margin-top: 20px;
-}
-</style>
+export default {
+  data() {
+    return {
+      doctorList: []
+    };
+  },
+  created() {
+    this.fetchDoctorList();
+  },
+  methods: {
+    async fetchDoctorList() {
+      const res = await fetchDoctors();
+      this.doctorList = res.data;
+    },
+    handleAdd() {
+      this.$router.push('/admin/doctors/add');
+    },
+    handleEdit(doctor) {
+      this.$router.push(`/admin/doctors/edit/${doctor.id}`);
+    },
+    async handleDelete(doctor) {
+      await deleteDoctor(doctor.id);
+      this.fetchDoctorList();
+    }
+  }
+};
+</script>

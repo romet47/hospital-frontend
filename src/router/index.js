@@ -23,7 +23,11 @@ const routes = [
       },
       { path: 'doctors', component: () => import('@/views/admin/doctors/Index.vue') },
       { path: 'doctors/add', component: () => import('@/views/admin/doctors/AddDoctor.vue') },
-      { path: 'doctors/edit/:id', component: () => import('@/views/admin/doctors/EditDoctor.vue') },
+      {
+        path: '/admin/doctors/edit/:id',
+        name: 'EditDoctor',
+        component: () => import('@/views/admin/doctors/EditDoctor.vue')
+      },
       { path: 'schedules', component: () => import('@/views/admin/schedules/Index.vue') },
       { path: 'schedules/add', component: () => import('@/views/admin/schedules/AddSchedule.vue') },
       { path: 'schedules/edit/:id', component: () => import('@/views/admin/schedules/EditSchedule.vue') },

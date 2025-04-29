@@ -62,10 +62,42 @@ export function deleteDepartment(id) {
 }
 
 // 医生相关API
-export const fetchDoctors = () => {
+export const fetchDoctors = (page = 0, size = 10) => {
     return request({
         url: '/api/admin/doctors',
-        method: 'get'
+        method: 'get',
+        params: { page, size, sort: 'id,desc' },
+        transformResponse: [(data) => {
+            try {
+                const parsed = JSON.parse(data);
+                return parsed.content || parsed; // 确保返回数组
+            } catch (e) {
+                return data;
+            }
+        }]
+    });
+};
+export const fetchDoctorById = (id) => {
+    return request({
+        url: `/api/admin/doctors/${id}`,
+        method: 'get',
+        transformResponse: [
+            function (data) {
+                try {
+                    const parsed = JSON.parse(data);
+                    // 统一数据结构
+                    return {
+                        id: parsed.id,
+                        name: parsed.name,
+                        title: parsed.title,
+                        specialty: parsed.specialty,
+                        department: parsed.department || { id: parsed.departmentId }
+                    };
+                } catch (e) {
+                    return data;
+                }
+            }
+        ]
     });
 };
 
@@ -77,11 +109,20 @@ export const addDoctor = (data) => {
     });
 };
 
-export const updateDoctor = (id, data) => {
+// 更新医生
+export const updateDoctor = (data) => {
     return request({
-        url: `/api/admin/doctors/${id}`,
+        url: `/api/admin/doctors/${data.id}`,
         method: 'put',
-        data: data
+        data: {
+            name: data.name,
+            title: data.title,
+            specialty: data.specialty,
+            introduction: data.introduction,
+            department: {
+                id: data.department.id
+            }
+        }
     });
 };
 

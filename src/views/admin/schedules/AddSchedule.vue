@@ -1,24 +1,34 @@
 <template>
   <div class="form-container">
     <el-form :model="form" :rules="rules" ref="formRef" label-width="120px">
-      <el-form-item label="医生" prop="doctorId">
-        <el-select v-model="form.doctorId" placeholder="请选择医生">
-          <el-option
-              v-for="doctor in doctorList"
-              :key="doctor.id"
-              :label="doctor.name"
-              :value="doctor.id"
-          />
-        </el-select>
-      </el-form-item>
-
       <el-form-item label="科室" prop="departmentId">
-        <el-select v-model="form.departmentId" placeholder="请选择科室">
+        <el-select
+            v-model="form.departmentId"
+            placeholder="请选择科室"
+            @change="handleDepartmentChange"
+            clearable
+        >
           <el-option
               v-for="dept in departmentList"
               :key="dept.id"
               :label="dept.name"
               :value="dept.id"
+          />
+        </el-select>
+      </el-form-item>
+
+      <el-form-item label="医生" prop="doctorId">
+        <el-select
+            v-model="form.doctorId"
+            placeholder="请先选择科室"
+            :disabled="!form.departmentId"
+            clearable
+        >
+          <el-option
+              v-for="doctor in filteredDoctors"
+              :key="doctor.id"
+              :label="`${doctor.name} (${doctor.title || '无职称'})`"
+              :value="doctor.id"
           />
         </el-select>
       </el-form-item>
@@ -58,19 +68,24 @@ export default {
   data() {
     return {
       form: {
-        doctorId: '',
         departmentId: '',
+        doctorId: '',
         workDate: '',
         timeSlot: 'AM',
-        totalNumber: 20
+        totalNumber: 20,
+        availableNumber: 20, // 初始等于总号源数
+        status: 1 // 默认状态为启用
       },
       rules: {
-        doctorId: [{ required: true, message: '请选择医生', trigger: 'change' }],
         departmentId: [{ required: true, message: '请选择科室', trigger: 'change' }],
-        workDate: [{ required: true, message: '请选择日期', trigger: 'change' }]
+        doctorId: [{ required: true, message: '请选择医生', trigger: 'change' }],
+        workDate: [{ required: true, message: '请选择日期', trigger: 'change' }],
+        totalNumber: [{ required: true, message: '请输入总号源数', trigger: 'blur' }]
       },
       doctorList: [],
-      departmentList: []
+      filteredDoctors: [],
+      departmentList: [],
+      loading: false
     };
   },
   async created() {
@@ -79,27 +94,68 @@ export default {
   methods: {
     async fetchOptions() {
       try {
+        this.loading = true;
         const [doctorsRes, deptsRes] = await Promise.all([
           fetchDoctors(),
           fetchDepartments()
         ]);
-        this.doctorList = doctorsRes.data || [];
-        this.departmentList = deptsRes.data || [];
+
+        this.doctorList = Array.isArray(doctorsRes.data)
+            ? doctorsRes.data
+            : Array.isArray(doctorsRes)
+                ? doctorsRes
+                : [];
+
+        this.departmentList = Array.isArray(deptsRes.data)
+            ? deptsRes.data
+            : Array.isArray(deptsRes)
+                ? deptsRes
+                : [];
+
       } catch (error) {
         console.error('获取选项失败:', error);
         this.$message.error('获取选项数据失败');
+      } finally {
+        this.loading = false;
       }
     },
-    submitForm() {
+
+    handleDepartmentChange(departmentId) {
+      this.form.doctorId = '';
+      if (departmentId) {
+        this.filteredDoctors = this.doctorList.filter(
+            doctor => doctor.department?.id === departmentId ||
+                doctor.departmentId === departmentId
+        );
+      } else {
+        this.filteredDoctors = [];
+      }
+    },
+
+    async submitForm() {
       this.$refs.formRef.validate(async valid => {
         if (valid) {
           try {
-            await addSchedule(this.form);
+            const postData = {
+              doctor: { id: this.form.doctorId },
+              department: { id: this.form.departmentId },
+              workDate: this.form.workDate,
+              timeSlot: this.form.timeSlot,
+              totalNumber: this.form.totalNumber,
+              availableNumber: this.form.totalNumber,
+              status: 1
+            };
+
+            await addSchedule(postData);
             this.$message.success('添加排班成功');
             this.$router.push('/admin/schedules');
           } catch (error) {
             console.error('添加排班失败:', error);
-            this.$message.error(`添加失败: ${error.message || '未知错误'}`);
+            let errorMsg = '添加失败';
+            if (error.response) {
+              errorMsg += `: ${error.response.data || '服务器错误'}`;
+            }
+            this.$message.error(errorMsg);
           }
         }
       });

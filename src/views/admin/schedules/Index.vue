@@ -1,16 +1,30 @@
 <template>
   <div class="schedule-container">
-    <el-table :data="scheduleList" style="width: 100%">
-      <el-table-column prop="doctor.name" label="医生" width="150"></el-table-column>
+    <el-table :data="scheduleList" style="width: 100%" v-loading="loading">
+      <el-table-column prop="doctor.name" label="医生" width="180">
+        <template #default="{row}">
+          {{ row.doctor.name }} ({{ row.doctor.title || '无职称' }})
+        </template>
+      </el-table-column>
+
       <el-table-column prop="department.name" label="科室" width="150"></el-table-column>
+
       <el-table-column prop="workDate" label="出诊日期" width="120">
         <template #default="{row}">
           {{ formatDate(row.workDate) }}
         </template>
       </el-table-column>
-      <el-table-column prop="timeSlot" label="时间段" width="100"></el-table-column>
+
+      <el-table-column prop="timeSlot" label="时间段" width="100">
+        <template #default="{row}">
+          {{ row.timeSlot === 'AM' ? '上午' : '下午' }}
+        </template>
+      </el-table-column>
+
       <el-table-column prop="totalNumber" label="总号源数" width="100"></el-table-column>
+
       <el-table-column prop="availableNumber" label="可用号源数" width="100"></el-table-column>
+
       <el-table-column label="操作" width="180">
         <template #default="scope">
           <el-button size="small" @click="handleEdit(scope.row)">编辑</el-button>
@@ -31,7 +45,8 @@ import { fetchSchedules, deleteSchedule } from '@/api/admin';
 export default {
   data() {
     return {
-      scheduleList: []
+      scheduleList: [],
+      loading: false
     };
   },
   created() {
@@ -39,23 +54,30 @@ export default {
   },
   methods: {
     formatDate(date) {
-      return new Date(date).toLocaleDateString();
+      if (!date) return '';
+      try {
+        // 处理可能的日期格式
+        const d = new Date(date);
+        return isNaN(d.getTime()) ? date : d.toLocaleDateString();
+      } catch (e) {
+        return date;
+      }
     },
     async fetchScheduleList() {
+      this.loading = true;
       try {
         const res = await fetchSchedules();
-        this.scheduleList = res.data || [];
+        console.log('API响应数据:', res); // 调试用
+        this.scheduleList = Array.isArray(res) ? res : [];
       } catch (error) {
         console.error('获取排班列表失败:', error);
         this.$message.error('获取排班数据失败');
+      } finally {
+        this.loading = false;
       }
     },
     handleAdd() {
-      this.$router.push('/admin/schedules/add').catch(err => {
-        if (err.name !== 'NavigationDuplicated') {
-          console.error('路由跳转失败:', err);
-        }
-      });
+      this.$router.push('/admin/schedules/add');
     },
     handleEdit(schedule) {
       this.$router.push(`/admin/schedules/edit/${schedule.id}`);
@@ -90,7 +112,9 @@ export default {
   text-align: right;
 }
 
-.el-table {
-  margin-top: 20px;
+.empty-tip {
+  text-align: center;
+  padding: 20px;
+  color: #999;
 }
 </style>

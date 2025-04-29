@@ -62,8 +62,18 @@ export default {
     handleAdd() {
       this.$router.push('/admin/departments/add');
     },
-    handleEdit(department) {
-      this.$router.push(`/admin/departments/edit/${department.id}`);
+    handleEdit(row) {
+      // 添加路由跳转保护
+      this.$nextTick(() => {
+        this.$router.push({
+          path: `/admin/doctors/edit/${row.id}`,
+          query: { _t: Date.now() } // 防止路由缓存
+        }).catch(err => {
+          if (err.name !== 'NavigationDuplicated') {
+            console.error('路由跳转失败:', err);
+          }
+        });
+      });
     },
     async handleDelete(department) {
       try {

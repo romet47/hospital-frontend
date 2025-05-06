@@ -56,15 +56,19 @@ export const sendVerificationCode = async (email) => {
 
 export const checkEmail = async (email) => {
   try {
-    const response = await api.get('/api/auth/check-email', {
-      params: { email }
-    });
-    return response.data;
+    const response = await api.get('/api/auth/check-email', { params: { email } });
+
+    // 调试日志（完成后可删除）
+    console.log('完整响应对象:', response);
+    console.log('响应数据:', response.data);
+
+    // 直接返回整个response，由调用方处理
+    return response;
   } catch (error) {
-    throw error;
+    console.error('邮箱检查请求失败:', error);
+    throw new Error(error.response?.data?.message || '邮箱验证服务暂时不可用');
   }
 };
-
 // 确保添加这个导出
 export const resetPassword = async (data) => {
   try {

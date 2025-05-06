@@ -130,14 +130,15 @@ const checkEmailAvailability = async () => {
   if (!isEmailValid.value) return;
 
   try {
-    const res = await checkEmail(form.email);
-    if (res.exists) { // 现在直接检查res.exists
+    const response = await checkEmail(form.email);
+    // 明确指定数据路径
+    if (response.data?.exists) {
       ElMessage.warning('该邮箱已注册');
       form.email = '';
     }
   } catch (error) {
     console.error('邮箱检查失败:', error);
-    ElMessage.error('邮箱验证服务暂时不可用');
+    ElMessage.error(error.message);
   }
 };
 
@@ -198,8 +199,8 @@ const sendCode = async () => {
   try {
     await registerForm.value.validateField('email');
     const checkRes = await checkEmail(form.email);
-
-    if (checkRes.exists) { // 直接检查exists属性
+    const response = await checkEmail(form.email);
+    if (response.data?.exists) { // 直接检查exists属性
       throw new Error('该邮箱已注册');
     }
 
@@ -208,7 +209,7 @@ const sendCode = async () => {
     ElMessage.success('验证码已发送');
     startCountdown();
   } catch (error) {
-    ElMessage.error(error.message || '发送验证码失败');
+    ElMessage.error(error.message);
   } finally {
     loading.value = false;
   }
@@ -269,7 +270,7 @@ const goToPrivacy = () => router.push('/privacy');
   display: flex;
   justify-content: center;
   align-items: center;
-  background: url('@/assets/images/login-bg.jpg') no-repeat center center;
+  background: url('@/assets/hospital-bg.jpg') no-repeat center center;
   background-size: cover;
   position: relative;
 }

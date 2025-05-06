@@ -35,6 +35,34 @@ const routes = [
       { path: '', redirect: '/admin/users' } // 默认重定向到用户管理页面
     ]
   },
+  {
+    path: '/patient',
+    component: () => import('@/views/patient/Index.vue'),
+    meta: { requiresAuth: true, requiredRole: 'PATIENT' }, // 添加患者角色
+    children: [
+      {
+        path: 'dashboard',
+        component: () => import('@/views/patient/Dashboard.vue'),
+        name: 'patient-dashboard'
+      },
+      {
+        path: 'departments',
+        component: () => import('@/views/patient/Departments.vue'),
+        name: 'patient-departments'
+      },
+      {
+        path: 'appointments',
+        component: () => import('@/views/patient/Appointments.vue'),
+        name: 'patient-appointments'
+      },
+      {
+        path: 'profile',
+        component: () => import('@/views/patient/Profile.vue'),
+        name: 'patient-profile'
+      },
+      { path: '', redirect: '/patient/dashboard' } // 默认重定向
+    ]
+  },
   // 登录路由
   {
     path: '/login',

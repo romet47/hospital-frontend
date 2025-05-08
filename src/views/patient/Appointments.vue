@@ -1,4 +1,3 @@
-<!-- src/views/patient/Appointments.vue -->
 <template>
   <div class="appointments-container">
     <h2>我的预约</h2>
@@ -21,23 +20,19 @@ const activeTab = ref('upcoming')
 
 const upcomingAppointments = ref([
   {
-    id: 'A1001',
-    date: '2023-06-15',
-    time: '09:30',
-    department: '心血管内科',
-    doctor: '李医生',
-    status: '已确认'
+    id: 1,
+    doctor: { department: { name: '心血管内科' }, name: '李医生' },
+    schedule: { workDate: '2023-06-15', timeSlot: '上午' },
+    status: 'PENDING'
   }
 ])
 
 const historicalAppointments = ref([
   {
-    id: 'A0901',
-    date: '2023-05-20',
-    time: '10:00',
-    department: '消化内科',
-    doctor: '王医生',
-    status: '已完成'
+    id: 2,
+    doctor: { department: { name: '消化内科' }, name: '王医生' },
+    schedule: { workDate: '2023-05-20', timeSlot: '上午' },
+    status: 'COMPLETED'
   }
 ])
 </script>

@@ -2,10 +2,10 @@
 <template>
   <div class="patient-container">
     <el-container>
-      <!-- 侧边栏导航 -->
+      <!-- 侧边栏 -->
       <el-aside width="200px">
         <div class="patient-info">
-          <el-avatar :size="50" :src="patient.avatar" />
+          <el-avatar size="large" :src="patient.avatar" />
           <div class="patient-name">{{ patient.name }}</div>
         </div>
         <el-menu
@@ -25,10 +25,10 @@
             <el-icon><Avatar /></el-icon>
             <span>医生查询</span>
           </el-menu-item>
-          <el-menu-item index="/patient/appointment">
+          <el-menu-item index="/patient/appointments">
             <el-icon><Calendar /></el-icon>
             <span>预约挂号</span>
-            <el-badge :value="3" class="badge" />
+            <el-badge :value="appointmentsCount" class="badge" />
           </el-menu-item>
           <el-menu-item index="/patient/records">
             <el-icon><Document /></el-icon>
@@ -41,7 +41,7 @@
         </el-menu>
       </el-aside>
 
-      <!-- 主内容区 -->
+      <!-- 主内容 -->
       <el-main>
         <router-view />
       </el-main>
@@ -59,12 +59,32 @@ import {
   User
 } from '@element-plus/icons-vue'
 import { ref } from 'vue'
+import { useRoute } from 'vue-router'
+import axios from '@/utils/request'
+
+const route = useRoute()
 
 const patient = ref({
   name: '张三',
   avatar: 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
   id: 'P12345678'
 })
+const appointmentsCount = ref(0)
+
+// 获取当前用户和预约数量
+async function loadUserInfo() {
+  try {
+    const res = await axios.get('/api/auth/me')
+    patient.value.name = res.data.username
+
+    const apptRes = await axios.get('/api/appointments/my')
+    appointmentsCount.value = apptRes.data.filter(a => a.status === 'PENDING').length
+  } catch (error) {
+    console.error('获取用户信息失败', error)
+  }
+}
+
+loadUserInfo()
 </script>
 
 <style scoped>

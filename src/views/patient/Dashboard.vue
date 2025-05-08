@@ -1,105 +1,145 @@
-<!-- src/views/patient/Dashboard.vue -->
 <template>
   <div class="dashboard-container">
-    <h2>欢迎回来，{{ patient.name }}！</h2>
+    <!-- 欢迎信息 -->
+    <div class="welcome-section">
+      <h2>欢迎回来，{{ user.name }}！</h2>
+      <button @click="refreshData" class="el-button el-button--primary el-button--small">刷新数据</button>
+    </div>
 
-    <el-row :gutter="20" class="quick-actions">
-      <el-col :span="8">
-        <el-card shadow="hover" @click="$router.push('/patient/appointment')">
-          <el-icon size="30px"><Calendar /></el-icon>
-          <h3>快速预约</h3>
-        </el-card>
-      </el-col>
-      <el-col :span="8">
-        <el-card shadow="hover" @click="$router.push('/patient/records')">
-          <el-icon size="30px"><Document /></el-icon>
-          <h3>我的预约</h3>
-        </el-card>
-      </el-col>
-      <el-col :span="8">
-        <el-card shadow="hover" @click="$router.push('/patient/profile')">
-          <el-icon size="30px"><User /></el-icon>
-          <h3>个人资料</h3>
-        </el-card>
-      </el-col>
-    </el-row>
+    <!-- 快捷操作 -->
+    <div class="quick-actions">
+      <div class="action-card" @click="quickAppointment">
+        <i class="el-icon-date"></i>
+        <h3>快速预约</h3>
+      </div>
+      <div class="action-card" @click="goToAppointments">
+        <i class="el-icon-document"></i>
+        <h3>我的预约 <span class="badge">{{ appointments.length }}</span></h3>
+      </div>
+      <div class="action-card" @click="goToRecords">
+        <i class="el-icon-folder-opened"></i>
+        <h3>就诊记录</h3>
+      </div>
+      <div class="action-card" @click="goToProfile">
+        <i class="el-icon-user"></i>
+        <h3>个人中心</h3>
+      </div>
+    </div>
 
-    <el-card class="upcoming-appointments">
-      <template #header>
-        <span>即将到来的预约</span>
-      </template>
-      <el-table :data="appointments" style="width: 100%">
-        <el-table-column prop="date" label="日期" width="120" />
-        <el-table-column prop="time" label="时间" width="120" />
-        <el-table-column prop="department" label="科室" />
-        <el-table-column prop="doctor" label="医生" />
-        <el-table-column label="操作" width="120">
-          <template #default="scope">
-            <el-button size="small" @click="viewDetails(scope.row)">详情</el-button>
+    <!-- 预约表格 -->
+    <div class="data-card">
+      <h3>近期预约</h3>
+      <el-table :data="appointments" border style="width: 100%">
+        <el-table-column prop="doctor.department.name" label="科室"></el-table-column>
+        <el-table-column prop="doctor.name" label="医生"></el-table-column>
+        <el-table-column prop="schedule.workDate" label="日期"></el-table-column>
+        <el-table-column prop="schedule.timeSlot" label="时间"></el-table-column>
+        <el-table-column label="状态">
+          <template #default="{ row }">
+            <span :style="{ color: getStatusColor(row.status) }">{{ formatStatus(row.status) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作">
+          <template #default="{ row }">
+            <el-button type="text" @click="viewDetail(row)">详情</el-button>
           </template>
         </el-table-column>
       </el-table>
-    </el-card>
+    </div>
 
-    <el-card class="department-news">
-      <template #header>
-        <span>科室公告</span>
-      </template>
-      <el-collapse>
-        <el-collapse-item v-for="item in news" :key="item.id" :title="item.title">
-          <div>{{ item.content }}</div>
-          <div class="news-date">{{ item.date }}</div>
-        </el-collapse-item>
-      </el-collapse>
-    </el-card>
+    <!-- 医院公告 -->
+    <div class="data-card">
+      <h3>医院公告</h3>
+      <div v-for="notice in notices" :key="notice.id" class="notice-item">
+        <h4>{{ notice.title }}</h4>
+        <p>{{ notice.content }}</p>
+        <p class="date">{{ notice.date }}</p>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { Calendar, Document, User } from '@element-plus/icons-vue'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import axios from '@/utils/request'
 
-const patient = ref({
-  name: '张三'
-})
-
-const appointments = ref([
-  {
-    id: 'A1001',
-    date: '2023-06-15',
-    time: '09:30',
-    department: '心血管内科',
-    doctor: '李医生',
-    status: '已确认'
-  },
-  {
-    id: 'A1002',
-    date: '2023-06-18',
-    time: '14:00',
-    department: '消化内科',
-    doctor: '王医生',
-    status: '已确认'
-  }
-])
-
-const news = ref([
+const user = ref({})
+const appointments = ref([])
+const notices = ref([
   {
     id: 1,
-    title: '心血管内科新增专家门诊',
-    content: '自6月1日起，心血管内科新增每周三上午专家门诊，由张教授坐诊。',
-    date: '2023-05-28'
+    title: '夏季门诊时间调整',
+    content: '6月15日起，下午门诊时间调整为14:00-17:30',
+    date: '2023-06-10'
   },
   {
     id: 2,
-    title: '医院夏季作息时间调整',
-    content: '6月1日至8月31日，门诊时间调整为上午8:00-11:30，下午14:00-17:30。',
-    date: '2023-05-25'
+    title: '新设备投入使用',
+    content: '放射科新增MRI设备，现已投入使用',
+    date: '2023-06-05'
   }
 ])
 
-const viewDetails = (appointment) => {
-  console.log('查看预约详情:', appointment)
-  // 实际项目中可以跳转到详情页
+onMounted(async () => {
+  try {
+    const resUser = await axios.get('/api/auth/me')
+    user.value = resUser.data
+
+    const resAppointments = await axios.get('/api/appointments/my')
+    appointments.value = resAppointments.data
+  } catch (error) {
+    console.error('加载数据失败', error)
+  }
+})
+
+function refreshData() {
+  // 可以重新拉取数据或触发刷新逻辑
+}
+
+function quickAppointment() {
+  window.location.href = '/#/patient/appointments'
+}
+
+function goToAppointments() {
+  window.location.href = '/#/patient/appointments'
+}
+
+function goToRecords() {
+  alert('跳转至就诊记录页面')
+}
+
+function goToProfile() {
+  window.location.href = '/#/patient/profile'
+}
+
+function viewDetail(row) {
+  alert(`查看预约 ID: ${row.id}`)
+}
+
+function getStatusColor(status) {
+  switch (status) {
+    case 'PENDING':
+      return '#e6a23c'
+    case 'COMPLETED':
+      return '#67c23a'
+    case 'CANCELLED':
+      return '#909399'
+    default:
+      return '#333'
+  }
+}
+
+function formatStatus(status) {
+  switch (status) {
+    case 'PENDING':
+      return '待就诊'
+    case 'COMPLETED':
+      return '已完成'
+    case 'CANCELLED':
+      return '已取消'
+    default:
+      return status
+  }
 }
 </script>
 
@@ -107,34 +147,53 @@ const viewDetails = (appointment) => {
 .dashboard-container {
   max-width: 1200px;
   margin: 0 auto;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
-
-.quick-actions {
-  margin-bottom: 20px;
-}
-
-.quick-actions .el-card {
-  text-align: center;
-  cursor: pointer;
-  height: 120px;
+.welcome-section {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-}
-
-.quick-actions h3 {
-  margin-top: 10px;
-}
-
-.upcoming-appointments, .department-news {
   margin-bottom: 20px;
 }
-
-.news-date {
-  margin-top: 10px;
+.quick-actions {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.action-card {
+  flex: 1;
+  padding: 20px;
+  text-align: center;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.action-card:hover {
+  transform: translateY(-5px);
+}
+.badge {
+  display: inline-block;
+  background: #f56c6c;
+  color: white;
+  border-radius: 10px;
+  padding: 2px 6px;
+  font-size: 12px;
+  margin-left: 5px;
+}
+.notice-item {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+.notice-item:last-child {
+  border-bottom: none;
+}
+.date {
+  font-size: 12px;
   color: #999;
-  font-size: 0.8em;
-  text-align: right;
 }
 </style>

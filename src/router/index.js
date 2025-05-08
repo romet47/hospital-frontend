@@ -38,29 +38,48 @@ const routes = [
   {
     path: '/patient',
     component: () => import('@/views/patient/Index.vue'),
-    meta: { requiresAuth: true, requiredRole: 'PATIENT' }, // 添加患者角色
+    meta: { requiresAuth: true, requiredRole: 'PATIENT' },
+    children: [
+      { path: 'dashboard', component: () => import('@/views/patient/Dashboard.vue'), name: 'patient-dashboard' },
+      { path: 'departments', component: () => import('@/views/patient/Departments.vue'), name: 'patient-departments' },
+      { path: 'doctors', component: () => import('@/views/patient/Doctors.vue'), name: 'patient-doctors' },
+      { path: 'appointments', component: () => import('@/views/patient/Appointments.vue'), name: 'patient-appointments' },
+      { path: 'profile', component: () => import('@/views/patient/Profile.vue'), name: 'patient-profile' },
+      { path: '', redirect: '/patient/dashboard' }
+    ]
+  },
+  {
+    path: '/doctor',
+    name: 'DoctorLayout',
+    component: () => import('@/views/doctor/Index.vue'),
+    redirect: '/doctor/dashboard',
+    meta: { requiresAuth: true },
     children: [
       {
         path: 'dashboard',
-        component: () => import('@/views/patient/Dashboard.vue'),
-        name: 'patient-dashboard'
+        name: 'DoctorDashboard',
+        component: () => import('@/views/doctor/Dashboard.vue')
       },
       {
-        path: 'departments',
-        component: () => import('@/views/patient/Departments.vue'),
-        name: 'patient-departments'
+        path: 'schedule',
+        name: 'DoctorSchedule',
+        component: () => import('@/views/doctor/Schedule.vue')
       },
       {
-        path: 'appointments',
-        component: () => import('@/views/patient/Appointments.vue'),
-        name: 'patient-appointments'
+        path: 'patients',
+        name: 'DoctorPatients',
+        component: () => import('@/views/doctor/Patients.vue')
       },
       {
-        path: 'profile',
-        component: () => import('@/views/patient/Profile.vue'),
-        name: 'patient-profile'
+        path: 'records',
+        name: 'DoctorRecords',
+        component: () => import('@/views/doctor/Records.vue')
       },
-      { path: '', redirect: '/patient/dashboard' } // 默认重定向
+      {
+        path: 'templates',
+        name: 'DoctorTemplates',
+        component: () => import('@/views/doctor/Templates.vue')
+      }
     ]
   },
   // 登录路由

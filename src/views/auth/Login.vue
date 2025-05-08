@@ -151,6 +151,8 @@ const handleLogin = async () => {
         redirectPath = '/admin';
       } else if (userRole === 'DOCTOR') {
         redirectPath = '/doctor';
+      }else if (userRole === 'PATIENT') {
+        redirectPath = '/patient';
       }
 
       await router.push(redirectPath);
